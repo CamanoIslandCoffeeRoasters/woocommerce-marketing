@@ -7,72 +7,62 @@
      date_default_timezone_set('America/Los_Angeles'); 
 
      $dateFrom = date('Y-m-d', strtotime($_POST['dateFrom']));
-     $dateTo = date('Y-m-d', strtotime($_POST['dateTo']));               
-               
-               
-             // SQL
-             
-               $free_pound_signups = $wpdb->get_var("SELECT count(subscription_id) 
-                                                       FROM {$wpdb->prefix}subscriptions
-                                                       WHERE subscription_start
-                                                       BETWEEN '$dateFrom'
-                                                           AND '$dateTo'
-                                                       AND free_pound = 'true'
-                                                       ");
-                                                  
-               $subscriptions_signups = $wpdb->get_var("SELECT count(subscription_id) 
+     $dateTo = date('Y-m-d', strtotime($_POST['dateTo']));
+     
+     $dateFromSQL = date("Y-m-d", strtotime($dateFrom) - 60 * 60 * 24);
+     $dateFromSQL = $dateFromSQL . " 20:45:01";
+     $dateToSQL = $dateTo . " 20:45:00";               
+?>
+          <?php 
+          $checkouts = array("Checkouts" => $wpdb->get_results("SELECT checkout as col, count(checkout) as row  
                                                             FROM {$wpdb->prefix}subscriptions
                                                             WHERE subscription_start
-                                                            BETWEEN '$dateFrom'
-                                                                AND '$dateTo'
-                                                            AND free_pound != 'true'
-                                                            ");
+                                                            BETWEEN '$dateFromSQL'
+                                                                AND '$dateToSQL'
+                                                            AND checkout IS NOT NULL
+                                                            GROUP BY (checkout)
+                                                            "));
                                                             
-               $referral_signups = $wpdb->get_var("SELECT count(subscription_id) 
+            $sources = array("Sources" => $wpdb->get_results("SELECT source as col, count(source) as row  
                                                             FROM {$wpdb->prefix}subscriptions
                                                             WHERE subscription_start
-                                                            BETWEEN '$dateFrom'
-                                                                AND '$dateTo'
-                                                            AND source like '%referralsubscriptioncheckout%'
-                                                            ");               
-               
-               $total_signups = $free_pound_signups + $subscriptions_signups + $referral_signups;
-
-          ?>   
-          <?php $columns = array("Free Pounds", "Subscriptions", "Referral"); ?> 
-          <?php $rows = array("Signups" =>   array($free_pound_signups, $subscriptions_signups, $referral_signups),
-                              "Total"   =>   array(null, null, $total_signups)); ?>
-          
-          <?php if ($total_signups) : ?>
-               <div>
-                    <h1>Signups</h1>
-                    <table class="widefat fixed">
+                                                            BETWEEN '$dateFromSQL'
+                                                                AND '$dateToSQL'
+                                                            AND source IS NOT NULL
+                                                            AND status = 'active'
+                                                            GROUP BY (source)
+                                                            ORDER BY row DESC
+                                                            "));
+            ?>
+            <?php $contents = array_merge($checkouts, $sources); ?>
+            <div>                                              
+            <?php foreach ($contents as $title => $data) : ?>
+               <?php $total = 0; ?>
+               <div style="width:25%;">
+                    <table style="width:100%;" class="widefat striped">
                          <thead>
                               <tr>
+                                   <th class="column"> <b><?php echo $title ?></b></th>
                                    <th></th>
-                              <?php foreach ($columns as $column) : ?>
-                                   <th class="column"> <?php echo $column ?> </th>
-                              <?php endforeach; ?>
                               </tr>
                          </thead>
                          <tbody>
-                              <?php $counter = 0; foreach ($rows as $row => $values) : ?>
-                                   <?php if ($counter % 2 == 0 ) {  
-                                   echo  "<tr valign=\"center\" class=\"alternate\">";
-                              }
-                              else {
-                                   echo "<tr>";
-                              } ?>
-                                   <td><?php echo $row ?></td>
-                                   <?php foreach ($values as $value) : ?>
-                                   <td><?php echo $value ?></td>
-                                   <?php endforeach; ?>
+                              <?php foreach ($data as $content) : ?>
+                                   <tr>
+                                        <td><?php echo ucwords($content->col) ?></td>
+                                        <td><?php echo $content->row ?></td>
                                    </tr>
-                                   
+                                <?php $total += $content->row; ?>
                               <?php $counter++; endforeach; ?>
+                              <tfoot>
+                                  <tr>
+                                      <th><b>Total</b></th>
+                                      <th><b><?php echo $total; ?></b></th>
+                                  </tr>
+                              </tfoot>
                          </tbody>
                     </table>
-               </div>
-          <?php else : ?> 
-               <h1>No Data</h1> 
-          <?php endif; ?>
+                    <br /><hr /><br />
+                </div>               
+            <?php endforeach; ?>
+          <div>
