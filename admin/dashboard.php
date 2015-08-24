@@ -29,6 +29,7 @@
 					<option value="signups">Signups</option>
 					<option value="subscriptions">Subscriptions</option>
 					<option value="affiliates">Affiliates</option>
+					<option value="products">Products</option>
 				</select>
 					<span style="float:right;margin-right:15%;" id="print_report" class="button-primary">Print</span>
 			</form>
