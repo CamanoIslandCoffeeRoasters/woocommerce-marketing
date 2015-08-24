@@ -14,14 +14,22 @@
      $dateToSQL = $dateTo . " 20:45:00";          
                
              // SQL
+           $reactivations_website = array("Reactivations Website" => $wpdb->get_results("SELECT meta_key as col, count(subscription_id) as row  
+                                                            FROM {$wpdb->prefix}subscriptionmeta
+                                                            WHERE meta_date
+                                                            BETWEEN '$dateFromSQL'
+                                                                AND '$dateToSQL'
+                                                            AND meta_key = 'reactivate'
+                                                            
+                                                            "));
                                                   
 
-           $reactivations = array("Reactivations" => $wpdb->get_results("SELECT added_by as col, count(subscription_id) as row  
+           $reactivations_portal = array("Reactivations Portal" => $wpdb->get_results("SELECT added_by as col, count(subscription_id) as row  
                                                             FROM {$wpdb->prefix}subscriptions_notes
                                                             WHERE note_date
                                                             BETWEEN '$dateFromSQL'
                                                                 AND '$dateToSQL'
-                                                            AND note_type = 'reactivate'
+                                                            AND note_type = 'reactivated'
                                                             GROUP BY (added_by)
                                                             "));
 
@@ -32,6 +40,7 @@
                                                                 AND '$dateToSQL'
                                                             AND status = 'canceled'
                                                             GROUP BY (cancel_reason)
+                                                            ORDER BY row DESC
                                                             "));
                                                             
            $shipments = array("Shipments" => $wpdb->get_results("SELECT post_status as col, COUNT(ID) as row
@@ -48,7 +57,7 @@
                                                                 WHERE status = 'active'
                                                                 "));
                ?>
-                <?php $contents = array_merge($reactivations, $cancelations, $shipments); ?>
+                <?php $contents = array_merge($reactivations_website, $reactivations_portal, $cancelations, $shipments); ?>
             <div>
             <?php foreach ($contents as $title => $data) : ?>
                <?php $total = 0; ?>
