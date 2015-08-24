@@ -43,7 +43,8 @@
                          <thead>
                               <tr>
                                    <th class="column"> <b><?php echo $title ?></b></th>
-                                   <th></th>
+                                   <th>Qty</th>
+                                   <th>Lbs</th>
                               </tr>
                          </thead>
                          <tbody>
@@ -51,12 +52,15 @@
                                    <tr>
                                         <td><?php echo ucwords($content->col) ?></td>
                                         <td><?php echo $content->row ?></td>
+                                        <?php echo isset($content->pounds) ? "<td>" . $content->row * (int) str_replace('lb', '', $content->pounds) . "</td>" : '' ?>
+                                        
                                    </tr>
                                 <?php $total += $content->row * (int) str_replace('lb', '', $content->pounds) ; ?>
                               <?php endforeach; ?>
                               <tfoot>
                                   <tr>
                                       <th><b>Total</b></th>
+                                      <th></th>
                                       <th><b><?php echo $total; ?></b></th>
                                   </tr>
                               </tfoot>
